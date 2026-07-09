@@ -1,24 +1,23 @@
 package vn.softdreams.flink.repository;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+
+@Slf4j
+@RequiredArgsConstructor
 public class RepositoryLedgerDeserializer implements DeserializationSchema<RepositoryLedgerRecord> {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(RepositoryLedgerDeserializer.class);
 
     private final String clusterId;
     private transient ObjectMapper mapper;
-
-    public RepositoryLedgerDeserializer(String clusterId) {
-        this.clusterId = clusterId;
-    }
 
     @Override
     public void open(InitializationContext context) {
@@ -33,98 +32,97 @@ public class RepositoryLedgerDeserializer implements DeserializationSchema<Repos
         try {
             node = mapper.readTree(message);
         } catch (Exception e) {
-            LOG.warn("Failed to parse JSON message: {}", new String(message), e);
+            log.warn("Failed to parse JSON: {}", new String(message), e);
             return null;
         }
 
-        // Skip tombstone messages
         if (node.isNull() || node.isEmpty()) return null;
 
         try {
             RepositoryLedgerRecord r = new RepositoryLedgerRecord();
 
-            r.setId(text(node, "ID"));
-            r.setCompanyId(text(node, "CompanyID"));
-            r.setBranchId(text(node, "BranchID"));
-            r.setReferenceId(text(node, "ReferenceID"));
-            r.setDate(text(node, "Date"));
-            r.setPostedDate(text(node, "PostedDate"));
+            r.setId(str(node, "ID"));
+            r.setCompanyId(str(node, "CompanyID"));
+            r.setBranchId(str(node, "BranchID"));
+            r.setReferenceId(str(node, "ReferenceID"));
+            r.setDate(epochMs(node, "Date"));           // Long epoch ms
+            r.setPostedDate(epochMs(node, "PostedDate")); // Long epoch ms
             r.setTypeLedger(intVal(node, "TypeLedger"));
-            r.setNoFBook(text(node, "NoFBook"));
-            r.setNoMBook(text(node, "NoMBook"));
-            r.setAccount(text(node, "Account"));
-            r.setAccountCorresponding(text(node, "AccountCorresponding"));
+            r.setNoFBook(str(node, "NoFBook"));
+            r.setNoMBook(str(node, "NoMBook"));
+            r.setAccount(str(node, "Account"));
+            r.setAccountCorresponding(str(node, "AccountCorresponding"));
 
-            r.setRepositoryId(text(node, "RepositoryID"));
-            r.setRepositoryCode(text(node, "RepositoryCode"));
-            r.setRepositoryName(text(node, "RepositoryName"));
+            r.setRepositoryId(str(node, "RepositoryID"));
+            r.setRepositoryCode(str(node, "RepositoryCode"));
+            r.setRepositoryName(str(node, "RepositoryName"));
 
-            r.setMaterialGoodsId(text(node, "MaterialGoodsID"));
-            r.setMaterialGoodsCode(text(node, "MaterialGoodsCode"));
-            r.setMaterialGoodsName(text(node, "MaterialGoodsName"));
+            r.setMaterialGoodsId(str(node, "MaterialGoodsID"));
+            r.setMaterialGoodsCode(str(node, "MaterialGoodsCode"));
+            r.setMaterialGoodsName(str(node, "MaterialGoodsName"));
 
-            r.setUnitId(text(node, "UnitID"));
+            r.setUnitId(str(node, "UnitID"));
             r.setUnitPrice(decimal(node, "UnitPrice"));
             r.setIwQuantity(decimal(node, "IWQuantity"));
             r.setOwQuantity(decimal(node, "OWQuantity"));
             r.setIwAmount(decimal(node, "IWAmount"));
             r.setOwAmount(decimal(node, "OWAmount"));
-            r.setMainUnitId(text(node, "MainUnitID"));
+            r.setMainUnitId(str(node, "MainUnitID"));
             r.setMainUnitPrice(decimal(node, "MainUnitPrice"));
             r.setMainIwQuantity(decimal(node, "MainIWQuantity"));
             r.setMainOwQuantity(decimal(node, "MainOWQuantity"));
             r.setMainConvertRate(decimal(node, "MainConvertRate"));
-            r.setFormula(text(node, "Formula"));
+            r.setFormula(str(node, "Formula"));
 
-            r.setReason(text(node, "Reason"));
-            r.setDescription(text(node, "Description"));
-            r.setExpiryDate(text(node, "ExpiryDate"));
-            r.setLotNo(text(node, "LotNo"));
+            r.setReason(str(node, "Reason"));
+            r.setDescription(str(node, "Description"));
+            r.setExpiryDate(epochMs(node, "ExpiryDate")); // Long epoch ms
+            r.setLotNo(str(node, "LotNo"));
 
-            r.setBudgetItemId(text(node, "BudgetItemID"));
-            r.setCostSetId(text(node, "CostSetID"));
-            r.setStatisticsCodeId(text(node, "StatisticsCodeID"));
-            r.setExpenseItemId(text(node, "ExpenseItemID"));
-            r.setDetailId(text(node, "DetailID"));
+            r.setBudgetItemId(str(node, "BudgetItemID"));
+            r.setCostSetId(str(node, "CostSetID"));
+            r.setStatisticsCodeId(str(node, "StatisticsCodeID"));
+            r.setExpenseItemId(str(node, "ExpenseItemID"));
+            r.setDetailId(str(node, "DetailID"));
             r.setTypeId(intVal(node, "TypeID"));
             r.setOrderPriority(intVal(node, "OrderPriority"));
-            r.setConfrontId(text(node, "ConfrontID"));
-            r.setConfrontDetailId(text(node, "ConfrontDetailID"));
+            r.setConfrontId(str(node, "ConfrontID"));
+            r.setConfrontDetailId(str(node, "ConfrontDetailID"));
             r.setIsPromotion(boolVal(node, "IsPromotion"));
-            r.setRefDateTime(text(node, "RefDateTime"));
-            r.setDepartmentId(text(node, "DepartmentID"));
-            r.setAccountingObjectId(text(node, "AccountingObjectID"));
-            r.setContractId(text(node, "ContractID"));
+            r.setRefDateTime(epochMs(node, "RefDateTime")); // Long epoch ms
+            r.setDepartmentId(str(node, "DepartmentID"));
+            r.setAccountingObjectId(str(node, "AccountingObjectID"));
+            r.setContractId(str(node, "ContractID"));
 
-            r.setCustomField1(text(node, "CustomField1"));
-            r.setCustomField2(text(node, "CustomField2"));
-            r.setCustomField3(text(node, "CustomField3"));
-            r.setCustomField4(text(node, "CustomField4"));
-            r.setCustomField5(text(node, "CustomField5"));
-            r.setCustomFieldDetail1(text(node, "CustomFieldDetail1"));
-            r.setCustomFieldDetail2(text(node, "CustomFieldDetail2"));
-            r.setCustomFieldDetail3(text(node, "CustomFieldDetail3"));
-            r.setCustomFieldDetail4(text(node, "CustomFieldDetail4"));
-            r.setCustomFieldDetail5(text(node, "CustomFieldDetail5"));
+            r.setCustomField1(str(node, "CustomField1"));
+            r.setCustomField2(str(node, "CustomField2"));
+            r.setCustomField3(str(node, "CustomField3"));
+            r.setCustomField4(str(node, "CustomField4"));
+            r.setCustomField5(str(node, "CustomField5"));
+            r.setCustomFieldDetail1(str(node, "CustomFieldDetail1"));
+            r.setCustomFieldDetail2(str(node, "CustomFieldDetail2"));
+            r.setCustomFieldDetail3(str(node, "CustomFieldDetail3"));
+            r.setCustomFieldDetail4(str(node, "CustomFieldDetail4"));
+            r.setCustomFieldDetail5(str(node, "CustomFieldDetail5"));
 
-            r.setCreatedDate(text(node, "created_date"));
-            r.setRefId(text(node, "RefID"));
+            r.setCreatedDate(epochMs(node, "created_date")); // Long epoch ms
+            r.setRefId(str(node, "RefID"));
 
             // CDC metadata
             r.setSourceTs(longVal(node, "__source_ts_ms"));
-            r.setDeleted("d".equals(text(node, "__op")) ? 1 : 0);
+            r.setDeleted("d".equals(str(node, "__op")) ? 1 : 0);
             r.setClusterId(clusterId);
+
             return r;
+
         } catch (Exception e) {
-            LOG.error("Failed to map fields from JSON: {}", node, e);
+            log.error("Failed to map fields: {}", node, e);
             return null;
         }
     }
 
     @Override
-    public boolean isEndOfStream(RepositoryLedgerRecord record) {
-        return false;
-    }
+    public boolean isEndOfStream(RepositoryLedgerRecord r) { return false; }
 
     @Override
     public TypeInformation<RepositoryLedgerRecord> getProducedType() {
@@ -133,34 +131,44 @@ public class RepositoryLedgerDeserializer implements DeserializationSchema<Repos
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static String text(JsonNode node, String field) {
-        JsonNode f = node.get(field);
-        return (f == null || f.isNull()) ? null : f.asText();
+    /** String field — trả null nếu absent/null */
+    private static String str(JsonNode n, String f) {
+        JsonNode v = n.get(f);
+        return (v == null || v.isNull()) ? null : v.asText();
     }
 
-    private static Integer intVal(JsonNode node, String field) {
-        JsonNode f = node.get(field);
-        return (f == null || f.isNull()) ? null : f.asInt();
+    /** Integer nullable */
+    private static Integer intVal(JsonNode n, String f) {
+        JsonNode v = n.get(f);
+        return (v == null || v.isNull()) ? null : v.asInt();
     }
 
-    private static int boolVal(JsonNode node, String field) {
-        JsonNode f = node.get(field);
-        if (f == null || f.isNull()) return 0;
-        return (f.asBoolean() || f.asInt() == 1) ? 1 : 0;
+    /** bit/boolean → 0 or 1 */
+    private static int boolVal(JsonNode n, String f) {
+        JsonNode v = n.get(f);
+        if (v == null || v.isNull()) return 0;
+        return (v.asBoolean() || v.asInt() == 1) ? 1 : 0;
     }
 
-    private static long longVal(JsonNode node, String field) {
-        JsonNode f = node.get(field);
-        return (f == null || f.isNull()) ? 0L : f.asLong();
+    /** Long (non-nullable, default 0) */
+    private static long longVal(JsonNode n, String f) {
+        JsonNode v = n.get(f);
+        return (v == null || v.isNull()) ? 0L : v.asLong();
     }
 
-    private static BigDecimal decimal(JsonNode node, String field) {
-        JsonNode f = node.get(field);
-        if (f == null || f.isNull()) return null;
-        try {
-            return new BigDecimal(f.asText());
-        } catch (Exception e) {
-            return null;
-        }
+    /**
+     * Debezium SQL Server datetime → epoch milliseconds (Long nullable).
+     * Trả null nếu field absent hoặc null trong DB.
+     */
+    private static Long epochMs(JsonNode n, String f) {
+        JsonNode v = n.get(f);
+        return (v == null || v.isNull()) ? null : v.asLong();
+    }
+
+    /** Decimal/numeric field */
+    private static BigDecimal decimal(JsonNode n, String f) {
+        JsonNode v = n.get(f);
+        if (v == null || v.isNull()) return null;
+        try { return new BigDecimal(v.asText()); } catch (Exception e) { return null; }
     }
 }

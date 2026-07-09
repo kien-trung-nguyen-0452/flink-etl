@@ -7,11 +7,12 @@ services:
     command: jobmanager
     ports:
       - "8081:8081"
+    volumes:
+      - flink-checkpoints:/opt/flink/checkpoints
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: jobmanager
-        jobmanager.memory.process.size: 2048m
-        taskmanager.numberOfTaskSlots: 4
+        jobmanager.memory.process.size: 1024m
     networks:
       - flink
       - etl_default
@@ -23,14 +24,29 @@ services:
     depends_on:
       - jobmanager
     command: taskmanager
+    volumes:
+      - flink-checkpoints:/opt/flink/checkpoints
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: jobmanager
-        taskmanager.memory.process.size: 4096m
+        taskmanager.memory.process.size: 2048m
         taskmanager.numberOfTaskSlots: 4
+        taskmanager.memory.managed.fraction: 0.3
+        state.backend: rocksdb
+        state.backend.incremental: true
+        state.backend.rocksdb.memory.managed: true
+        state.backend.rocksdb.memory.fixed-per-slot: 64mb
+        state.checkpoints.dir: file:///opt/flink/checkpoints
+        execution.checkpointing.interval: 30000
+        execution.checkpointing.min-pause: 5000
+        execution.checkpointing.timeout: 60000
+        execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
     networks:
       - flink
       - etl_default
+
+volumes:
+  flink-checkpoints:
 
 networks:
   flink:

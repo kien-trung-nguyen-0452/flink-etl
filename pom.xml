@@ -5,7 +5,6 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>vn.softdreams</groupId>
     <artifactId>flink-repository-ledger</artifactId>
     <version>1.0.0</version>
@@ -13,74 +12,40 @@
 
     <properties>
         <java.version>17</java.version>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <flink.version>1.19.3</flink.version>
-
+        <flink.kafka.version>3.2.0-1.19</flink.kafka.version>
         <clickhouse.jdbc.version>0.6.0</clickhouse.jdbc.version>
         <jackson.version>2.15.2</jackson.version>
-        <snakeyaml.version>2.5</snakeyaml.version>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <snakeyaml.version>2.2</snakeyaml.version>
+        <lombok.version>1.18.38</lombok.version>
     </properties>
 
     <dependencies>
 
-        <!-- Lombok -->
+        <!-- ── Lombok (compile-time only) ───────────────────────────────── -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.38</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- ================= Flink Runtime ================= -->
-
+        <!-- ── Flink (provided by cluster) ──────────────────────────────── -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java</artifactId>
             <version>${flink.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-clients</artifactId>
             <version>${flink.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-statebackend-rocksdb</artifactId>
-            <version>${flink.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- ================= Kafka ================= -->
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka</artifactId>
-            <version>3.2.0-1.19</version>
-        </dependency>
-
-        <!-- ================= ClickHouse ================= -->
-
-        <dependency>
-            <groupId>com.clickhouse</groupId>
-            <artifactId>clickhouse-jdbc</artifactId>
-            <version>${clickhouse.jdbc.version}</version>
-        </dependency>
-
-        <!-- ================= Jackson ================= -->
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -88,24 +53,73 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- ================= YAML ================= -->
+        <!-- ── RocksDB: bundled vào fat jar (standalone cluster chưa có) ─ -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-statebackend-rocksdb</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
 
+        <!-- ── Kafka connector ───────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-kafka</artifactId>
+            <version>${flink.kafka.version}</version>
+        </dependency>
+
+        <!-- ── ClickHouse JDBC (classifier=all: bundle HTTP client) ─────── -->
+        <dependency>
+            <groupId>com.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
+            <version>${clickhouse.jdbc.version}</version>
+            <classifier>all</classifier>
+            <exclusions>
+                <!-- tránh conflict với jackson trong fat jar -->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- ── Jackson (parse Debezium JSON) ────────────────────────────── -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- ── SnakeYAML (load config YAML) ─────────────────────────────── -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>
         </dependency>
+
     </dependencies>
+
     <build>
         <finalName>flink-etl</finalName>
         <plugins>
+
+            <!-- Compiler với Lombok annotation processor -->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>${java.version}</release>
+                    <release>17</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <!-- Fat jar: bundle tất cả deps trừ Flink/SLF4J (provided) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -113,9 +127,7 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
+                        <goals><goal>shade</goal></goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
@@ -125,21 +137,25 @@
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>
-                                        vn.softdreams.flink.repository.RepositoryLedgerJob
-                                    </mainClass>
+                                    <mainClass>vn.softdreams.flink.repository.RepositoryLedgerJob</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>reference.conf</resource>
+                                </transformer>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 </project>
