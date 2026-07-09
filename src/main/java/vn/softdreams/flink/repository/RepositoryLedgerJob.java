@@ -23,7 +23,7 @@ public class RepositoryLedgerJob {
 
     public static void main(String[] args) throws Exception {
 
-        JobConfig config = ConfigLoader.load("configs/repository-ledger.yml");
+        JobConfig config = ConfigLoader.load("config/repository-ledger.yml");
 
         LOG.info(
                 "Starting RepositoryLedgerJob | topic={} cluster={}",
