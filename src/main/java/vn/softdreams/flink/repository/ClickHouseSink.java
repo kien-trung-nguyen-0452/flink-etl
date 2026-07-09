@@ -127,8 +127,8 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
         s.setString(i++, r.getCompanyId());
         s.setString(i++, r.getBranchId());
         s.setString(i++, r.getReferenceId());
-        s.setString(i++, r.getDate());
-        s.setString(i++, r.getPostedDate());
+        setNullableDateTime(s, i++, r.getDate());
+        setNullableDateTime(s, i++, r.getPostedDate());
         setNullableInt(s, i++, r.getTypeLedger());
         s.setString(i++, r.getNoFBook());
         s.setString(i++, r.getNoMBook());
@@ -154,7 +154,7 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
         s.setString(i++, r.getFormula());
         s.setString(i++, r.getReason());
         s.setString(i++, r.getDescription());
-        s.setString(i++, r.getExpiryDate());
+        setNullableDateTime(s, i++, r.getExpiryDate());
         s.setString(i++, r.getLotNo());
         s.setString(i++, r.getBudgetItemId());
         s.setString(i++, r.getCostSetId());
@@ -166,7 +166,7 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
         s.setString(i++, r.getConfrontId());
         s.setString(i++, r.getConfrontDetailId());
         setNullableInt(s, i++, r.getIsPromotion());
-        s.setString(i++, r.getRefDateTime());
+        setNullableDateTime(s, i++, r.getRefDateTime());
         s.setString(i++, r.getDepartmentId());
         s.setString(i++, r.getAccountingObjectId());
         s.setString(i++, r.getContractId());
@@ -180,7 +180,7 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
         s.setString(i++, r.getCustomFieldDetail3());
         s.setString(i++, r.getCustomFieldDetail4());
         s.setString(i++, r.getCustomFieldDetail5());
-        s.setString(i++, r.getCreatedDate());
+        setNullableDateTime(s, i++, r.getCreatedDate());
         s.setString(i++, r.getRefId());
         s.setLong(i++, r.getSourceTs());
         s.setInt(i++, r.getDeleted());
@@ -227,5 +227,20 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
         }
         if (stmt != null) try { stmt.close(); } catch (Exception ignored) {}
         if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+    }
+
+    private void setNullableDateTime(PreparedStatement s, int idx, String value) throws Exception {
+
+        if (value == null || value.isEmpty()) {
+            s.setNull(idx, java.sql.Types.TIMESTAMP);
+            return;
+        }
+
+        long epoch = Long.parseLong(value);
+
+        java.sql.Timestamp ts =
+                new java.sql.Timestamp(epoch);
+
+        s.setTimestamp(idx, ts);
     }
 }
