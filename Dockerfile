@@ -1,4 +1,4 @@
-FROM flink:2.1.0-java17
+FROM  flink:1.19-java17
 
 COPY target/flink-etl.jar /opt/flink/usrlib/flink-etl.jar
 COPY config /opt/flink/config

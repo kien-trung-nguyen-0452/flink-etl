@@ -12,7 +12,7 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>2.1.0</flink.version>
+        <flink.version>1.19.3</flink.version>
         <kafka.version>3.4.0</kafka.version>
         <clickhouse.jdbc.version>0.6.0</clickhouse.jdbc.version>
         <jackson.version>2.15.2</jackson.version>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
-            <version>3.1.0-1.18</version>
+            <version>3.2.0-1.19</version>
         </dependency>
 
         <!-- Flink RocksDB state backend -->
