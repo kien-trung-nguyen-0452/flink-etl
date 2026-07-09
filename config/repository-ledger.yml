@@ -8,7 +8,7 @@ cluster:
 
 clickhouse:
   host: 10.100.120.64
-  port: 9000
+  port: 8123
   database: eb
   user: default
   password: ""
@@ -23,11 +23,11 @@ checkpoint:
   timeoutMs: 60000
 
 sink:
-  batchSize: 5000
-  flushIntervalMs: 500
+  batchSize: 50000
+  flushIntervalMs: 2000
 
 kafkaSource:
   partitionDiscoveryMs: 30000
-  maxPollRecords: 10000
+  maxPollRecords: 500000
   fetchMinBytes: 65536
   fetchMaxWaitMs: 100

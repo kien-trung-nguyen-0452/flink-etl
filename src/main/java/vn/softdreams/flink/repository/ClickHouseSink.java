@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+//add comment
 @Slf4j
 public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
 
@@ -213,7 +214,15 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
         props.setProperty("socket_timeout", "600000");
         props.setProperty("connect_timeout", "30000");
         props.setProperty("compress", "1");
-        String url = String.format("jdbc:clickhouse://%s:%d/%s", host, port, database);
+        String url = String.format(
+                "jdbc:clickhouse://%s:%d/%s" +
+                        "?compress=1" +
+                        "&socket_timeout=600000" +
+                        "&connect_timeout=30000" +
+                        "&max_execution_time=600" +
+                        "&buffer_size=1048576",   // 1MB buffer
+                host, port, database
+        );
         Connection c = java.sql.DriverManager.getConnection(url, props);
         c.setAutoCommit(false);
         return c;
