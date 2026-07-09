@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+
+  jobmanager:
+    build: .
+    container_name: flink-jobmanager
+
+    hostname: jobmanager
+
+    command: jobmanager
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        jobmanager.memory.process.size: 2048m
+        taskmanager.numberOfTaskSlots: 4
+
+    networks:
+      - flink
+
+  taskmanager:
+    build: .
+
+    container_name: flink-taskmanager
+
+    hostname: taskmanager
+
+    depends_on:
+      - jobmanager
+
+    command: taskmanager
+
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.memory.process.size: 4096m
+        taskmanager.numberOfTaskSlots: 4
+
+    networks:
+      - flink
+
+networks:
+  flink:
