@@ -1,6 +1,6 @@
 kafka:
   brokers: 10.100.120.64:9092
-  topic: eb99_gr2.EB99_GR2.dbo.RepositoryLedger
+  topic: dwh-rl-eb99_gr2.EB99_GR2.dbo.RepositoryLedger
   group: flink-repository-ledger-consumer
 
 cluster:
