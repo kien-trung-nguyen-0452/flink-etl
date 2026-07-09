@@ -1,5 +1,5 @@
 {
-  "name": "sqlserver-cdc-eb-gr2",
+  "name": "dwh-rl-gr2",
   "config": {
     "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
     "tasks.max": 1,
@@ -11,7 +11,7 @@
     "database.names": "EB99_GR2",
     "database.encrypt": "false",
 
-    "topic.prefix": "eb99_gr2",
+    "topic.prefix": "dwh-rl-eb99_gr2",
 
     "table.include.list": "dbo.RepositoryLedger",
 
