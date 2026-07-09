@@ -8,7 +8,7 @@ cluster:
 
 clickhouse:
   host: 10.100.120.64
-  port: 9000
+  port: 8123
   database: eb
   user: default
   password: ""
