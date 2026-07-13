@@ -23,11 +23,9 @@ public class RepositoryLedgerJob {
     private static final Logger LOG = LoggerFactory.getLogger(RepositoryLedgerJob.class);
 
     public static void main(String[] args) throws Exception {
-
         CommandLineOptions options = CommandLineOptions.parse(args);
         String configPath = options.getConfigPath();
         JobConfig config = ConfigLoader.load(configPath);
-
         LOG.info(
                 "Starting RepositoryLedgerJob | config={} topic={} cluster={}",
                 configPath,
