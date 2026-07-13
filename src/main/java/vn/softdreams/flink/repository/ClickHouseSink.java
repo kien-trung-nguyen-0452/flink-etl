@@ -189,10 +189,25 @@ public class ClickHouseSink extends RichSinkFunction<RepositoryLedgerRecord> {
 
     // ── Type helpers ─────────────────────────────────────────────────────────
 
-    /** Debezium epoch ms → java.sql.Timestamp → CH DateTime */
+    // CH DateTime32 range: 0 .. 4294967295 giây (1970-01-01 .. 2106-02-07)
+    private static final long CH_DATETIME32_MIN_SEC = 0L;
+    private static final long CH_DATETIME32_MAX_SEC = 4294967295L;
+
+    /** Debezium epoch ms → java.sql.Timestamp → CH DateTime.
+     *  Timestamp sentinel/out-of-range (vd: 9999-12-31 dùng làm "không có hạn")
+     *  sẽ được set NULL thay vì để JDBC driver throw exception. */
     private static void ts(PreparedStatement s, int idx, Long epochMs) throws SQLException {
-        if (epochMs == null) s.setNull(idx, Types.TIMESTAMP);
-        else s.setTimestamp(idx, new Timestamp(epochMs));
+        if (epochMs == null) {
+            s.setNull(idx, Types.TIMESTAMP);
+            return;
+        }
+        long epochSec = epochMs / 1000L;
+        if (epochSec < CH_DATETIME32_MIN_SEC || epochSec > CH_DATETIME32_MAX_SEC) {
+            log.warn("Timestamp {} (epochSec={}) vượt range DateTime32, set NULL", epochMs, epochSec);
+            s.setNull(idx, Types.TIMESTAMP);
+            return;
+        }
+        s.setTimestamp(idx, new Timestamp(epochMs));
     }
 
     private static void nullInt(PreparedStatement s, int idx, Integer val) throws SQLException {
