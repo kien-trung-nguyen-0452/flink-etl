@@ -31,8 +31,8 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: jobmanager
-        taskmanager.memory.process.size: 2048m
-        taskmanager.numberOfTaskSlots: 4
+        taskmanager.memory.process.size: 4096m
+        taskmanager.numberOfTaskSlots: 8
         taskmanager.memory.managed.fraction: 0.3
         state.backend: rocksdb
         state.backend.incremental: true
