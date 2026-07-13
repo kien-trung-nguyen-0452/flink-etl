@@ -12,6 +12,7 @@ import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.softdreams.flink.repository.configs.CommandLineOptions;
 import vn.softdreams.flink.repository.configs.ConfigLoader;
 import vn.softdreams.flink.repository.configs.JobConfig;
 
@@ -23,10 +24,13 @@ public class RepositoryLedgerJob {
 
     public static void main(String[] args) throws Exception {
 
-        JobConfig config = ConfigLoader.load("config/repository-ledger.yml");
+        CommandLineOptions options = CommandLineOptions.parse(args);
+        String configPath = options.getConfigPath();
+        JobConfig config = ConfigLoader.load(configPath);
 
         LOG.info(
-                "Starting RepositoryLedgerJob | topic={} cluster={}",
+                "Starting RepositoryLedgerJob | config={} topic={} cluster={}",
+                configPath,
                 config.kafka.topic,
                 config.cluster.id
         );

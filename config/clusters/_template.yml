@@ -1,0 +1,37 @@
+# Copy this file and rename to <cluster-name>.yml (e.g. eb99-gr3.yml).
+# Deploy with: flink run ... -- --config config/clusters/<cluster-name>.yml
+# Or set env: CONFIG_PATH=config/clusters/<cluster-name>.yml
+
+kafka:
+  brokers: <kafka-broker-host>:9092
+  topic: dwh-rl-<cluster>.<CLUSTER_ID>.dbo.RepositoryLedger
+  group: flink-repository-ledger-consumer-<CLUSTER_ID>
+
+cluster:
+  id: <CLUSTER_ID>
+
+clickhouse:
+  host: <clickhouse-host>
+  port: 8123
+  database: <database>
+  user: default
+  password: ""
+  table: repository_ledger
+
+flink:
+  parallelism: 4
+
+checkpoint:
+  intervalMs: 30000
+  minPauseMs: 5000
+  timeoutMs: 60000
+
+sink:
+  batchSize: 500
+  flushIntervalMs: 300
+
+kafkaSource:
+  partitionDiscoveryMs: 30000
+  maxPollRecords: 500000
+  fetchMinBytes: 65536
+  fetchMaxWaitMs: 100

@@ -1,0 +1,33 @@
+kafka:
+  brokers: 10.100.120.64:9092
+  topic: dwh-rl-eb99_gr2.EB99_GR2.dbo.RepositoryLedger
+  group: flink-repository-ledger-consumer
+
+cluster:
+  id: EB99_GR2
+
+clickhouse:
+  host: 10.100.120.64
+  port: 8123
+  database: eb
+  user: default
+  password: ""
+  table: repository_ledger
+
+flink:
+  parallelism: 4
+
+checkpoint:
+  intervalMs: 30000
+  minPauseMs: 5000
+  timeoutMs: 60000
+
+sink:
+  batchSize: 500
+  flushIntervalMs: 300
+
+kafkaSource:
+  partitionDiscoveryMs: 30000
+  maxPollRecords: 500000
+  fetchMinBytes: 65536
+  fetchMaxWaitMs: 100

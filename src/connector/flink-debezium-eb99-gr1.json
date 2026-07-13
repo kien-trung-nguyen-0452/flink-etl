@@ -1,17 +1,17 @@
 {
-  "name": "dwh-rl-gr2",
+  "name": "dwh-rl-gr1",
   "config": {
     "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
     "tasks.max": 1,
 
-    "database.hostname": "10.110.122.33",
+    "database.hostname": "10.100.122.190",
     "database.port": "1433",
-    "database.user": "applogin",
-    "database.password": "3Wt8-61x&gT_",
-    "database.names": "EASYBOOKS134",
+    "database.user": "sa",
+    "database.password": "EaSYBoOK@Sds((2024",
+    "database.names": "EB99_GR1",
     "database.encrypt": "false",
 
-    "topic.prefix": "dwh-rl-eb99_gr2",
+    "topic.prefix": "dwh-rl-eb99_gr1",
 
     "table.include.list": "dbo.RepositoryLedger",
 
@@ -38,7 +38,7 @@
     "retries": "5",
 
     "schema.history.internal.kafka.bootstrap.servers": "10.100.120.64:9092",
-    "schema.history.internal.kafka.topic": "eb99_gr2.schema_history",
+    "schema.history.internal.kafka.topic": "eb99_gr1.schema_history",
 
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
